@@ -15,6 +15,7 @@ langserve = {extras = ["all"], version = "^0.2.0"}
 langchain-community = "^0.2.0"
 langgraph = "^0.0.55"
 grandalf = "^0.8"
+pandas = "^2.2.2"
 
 
 [build-system]
