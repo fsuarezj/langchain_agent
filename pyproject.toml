@@ -16,6 +16,7 @@ langchain-community = "^0.2.0"
 langgraph = "^0.0.55"
 grandalf = "^0.8"
 pandas = "^2.2.2"
+pygments = "^2.18.0"
 
 
 [build-system]
