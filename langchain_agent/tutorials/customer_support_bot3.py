@@ -224,45 +224,47 @@ config = {
     }
 }
 
-
-_printed = set()
-while True:
-    user_input = input("User: ")
-    if user_input.lower() in ["quit", "exit", "q", "bye"]:
-        print("Goodbye!")
-        break
-    events = graph.stream(
-        {"messages": ("user", user_input)}, config, stream_mode="values"
-    )
-    for event in events:
-        _print_event(event, _printed)
-    snapshot = graph.get_state(config)
-    while snapshot.next:
-        user_input = input(
-            "Do you approve of the above actions? Type 'y' to continue;"
-            " otherwise, explain your requested changed.\n\n"
+def term_io():
+    _printed = set()
+    while True:
+        user_input = input("User: ")
+        if user_input.lower() in ["quit", "exit", "q", "bye"]:
+            print("Goodbye!")
+            break
+        events = graph.stream(
+            {"messages": ("user", user_input)}, config, stream_mode="values"
         )
-        if user_input.strip() == "y":
-            # Just continue
-            result = graph.invoke(None, config)
-        else:
-            # Satisfy the tool invocation by
-            # providing instructions on the requested changes / change of mind
-            result = graph.invoke(
-                {
-                    "messages": [
-                        ToolMessage(
-                            tool_call_id=event["messages"][-1].tool_calls[0]["id"],
-                            content=f"API call denied by user. Reasoning: '{user_input}'. Continue assisting, accounting for the user's input.",
-                        )
-                    ]
-                },
-                config,
-            )
+        for event in events:
+            _print_event(event, _printed)
         snapshot = graph.get_state(config)
-#for question in tutorial_questions:
-#    events = graph.stream(
-#        {"messages": ("user", question)}, config, stream_mode="values"
-#    )
-#    for event in events:
-#        _print_event(event, _printed)
+        while snapshot.next:
+            user_input = input(
+                "Do you approve of the above actions? Type 'y' to continue;"
+                " otherwise, explain your requested changed.\n\n"
+            )
+            if user_input.strip() == "y":
+                # Just continue
+                result = graph.invoke(None, config)
+            else:
+                # Satisfy the tool invocation by
+                # providing instructions on the requested changes / change of mind
+                result = graph.invoke(
+                    {
+                        "messages": [
+                            ToolMessage(
+                                tool_call_id=event["messages"][-1].tool_calls[0]["id"],
+                                content=f"API call denied by user. Reasoning: '{user_input}'. Continue assisting, accounting for the user's input.",
+                            )
+                        ]
+                    },
+                    config,
+                )
+            snapshot = graph.get_state(config)
+    #for question in tutorial_questions:
+    #    events = graph.stream(
+    #        {"messages": ("user", question)}, config, stream_mode="values"
+    #    )
+    #    for event in events:
+    #        _print_event(event, _printed)
+
+term_io()
