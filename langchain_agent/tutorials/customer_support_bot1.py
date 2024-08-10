@@ -1,11 +1,12 @@
 from dotenv import load_dotenv
 
 from langchain_core.runnables import RunnableLambda
-from langchain_core.messages import ToolMessage
+from langchain_core.messages import ToolMessage, AIMessage, HumanMessage
 
 from langgraph.prebuilt import ToolNode
 
-from tools_travel_example import fetch_user_flight_information, search_flights, lookup_policy, update_ticket_to_new_flight, cancel_ticket, search_car_rentals, book_car_rental, update_car_rental, cancel_car_rental, search_hotels, book_hotel, update_hotel, cancel_hotel, search_trip_recommendations, book_excursion, update_excursion, cancel_excursion
+from .tools_travel_example import fetch_user_flight_information, search_flights, lookup_policy, update_ticket_to_new_flight, cancel_ticket, search_car_rentals, book_car_rental, update_car_rental, cancel_car_rental, search_hotels, book_hotel, update_hotel, cancel_hotel, search_trip_recommendations, book_excursion, update_excursion, cancel_excursion
+from ..assistants.assistance_interface import AssistantInterface
 
 load_dotenv()
 local_file = "travel2.sqlite"
@@ -65,7 +66,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable, RunnableConfig
 from datetime import datetime
 
-from global_conf import GPT_MODEL
+from .global_conf import GPT_MODEL
 
 class Assistant:
     def __init__(self, runnable: Runnable) -> None:
@@ -185,21 +186,38 @@ config = {
     }
 }
 
+def term_io():
+    _printed = set()
+    while True:
+        user_input = input("User: ")
+        if user_input.lower() in ["quit", "exit", "q", "bye"]:
+            print("Goodbye!")
+            break
+        events = graph.stream(
+            {"messages": ("user", user_input)}, config, stream_mode="values"
+        )
+        for event in events:
+            _print_event(event, _printed)
+    #for question in tutorial_questions:
+    #    events = graph.stream(
+    #        {"messages": ("user", question)}, config, stream_mode="values"
+    #    )
+    #    for event in events:
+    #        _print_event(event, _printed)
 
-_printed = set()
-while True:
-    user_input = input("User: ")
-    if user_input.lower() in ["quit", "exit", "q", "bye"]:
-        print("Goodbye!")
-        break
-    events = graph.stream(
-        {"messages": ("user", user_input)}, config, stream_mode="values"
-    )
-    for event in events:
-        _print_event(event, _printed)
-#for question in tutorial_questions:
-#    events = graph.stream(
-#        {"messages": ("user", question)}, config, stream_mode="values"
-#    )
-#    for event in events:
-#        _print_event(event, _printed)
+class SupportBotIO1(AssistantInterface):
+    def __init__(self):
+        _printed = set()
+
+    def generate_stream_response(self, input):
+        for event in graph.stream({"messages": ("user", input)}, config, stream_mode="values"):
+            message = event.get("messages")
+            if isinstance(message, list):
+                message = message[-1]
+            msg_repr = message.pretty_repr(html=False)
+            if not isinstance(message, HumanMessage):
+                yield msg_repr
+                yield '\n\r'
+                #yield f":red[{message.content}]\n\r"
+
+#term_io()
