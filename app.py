@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_mermaid import st_mermaid
 from langchain_agent.assistants.mock_assistant import MockAssistant
 from langchain_agent.tutorials.customer_support_bot1 import SupportBotIO1
 
@@ -7,7 +8,9 @@ assistant = SupportBotIO1()
 
 st.title('Test LLM chat')
 
-st.sidebar.header("Log")
+with st.sidebar:
+    st.header("Log")
+    st_mermaid(assistant.get_graph())
 
 # Init chat history
 if "messages" not in st.session_state:

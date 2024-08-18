@@ -58,6 +58,18 @@ from typing import Optional
 
 import pytz
 from langchain_core.runnables import ensure_config
+import uuid
+
+thread_id = str(uuid.uuid4())
+configaux = {
+    "configurable": {
+        # The passenger_id is used in our flight tools to
+        # fetch the user's flight information
+        "passenger_id": "3442 587242",
+        # Checkpoints are accessed by thread_id
+        "thread_id": thread_id,
+    }
+}
 
 @tool
 def fetch_user_flight_information() -> list[dict]:
@@ -67,7 +79,7 @@ def fetch_user_flight_information() -> list[dict]:
         A list of dictionaries where each dictionary contains the ticket details,
         associated flight details, and the seat assignments for each ticket belonging to the user.
     """
-    config = ensure_config()  # Fetch from the context
+    config = ensure_config(configaux)  # Fetch from the context
     configuration = config.get("configurable", {})
     passenger_id = configuration.get("passenger_id", None)
     if not passenger_id:

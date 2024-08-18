@@ -61,12 +61,15 @@ class State(TypedDict):
 
 ############## Agent ##############
 from langchain_openai import ChatOpenAI
+#from langchain_ollama.llms import OllamaLLM
+#from langchain_experimental.llms.ollama_functions import OllamaFunctions
 from langchain_community.tools. tavily_search import TavilySearchResults
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable, RunnableConfig
 from datetime import datetime
 
-from .global_conf import GPT_MODEL
+from ..global_conf import GPT_MODEL
+#from global_conf import OLLAMA_MODEL
 
 class Assistant:
     def __init__(self, runnable: Runnable) -> None:
@@ -87,6 +90,8 @@ class Assistant:
         return {"messages": result}
 
 llm = ChatOpenAI(model=GPT_MODEL)
+#llm = OllamaLLM(model=OLLAMA_MODEL)
+#llm = OllamaFunctions(model=OLLAMA_MODEL)
 
 primary_assistant_prompt = ChatPromptTemplate.from_messages(
     [
@@ -180,7 +185,7 @@ config = {
     "configurable": {
         # The passenger_id is used in our flight tools to
         # fetch the user's flight information
-        "passenger_id": "3442 587242",
+        # "passenger_id": "3442 587242",
         # Checkpoints are accessed by thread_id
         "thread_id": thread_id,
     }
@@ -208,9 +213,20 @@ def term_io():
 class SupportBotIO1(AssistantInterface):
     def __init__(self):
         _printed = set()
+    
+    def get_graph(self):
+        return graph.get_graph().draw_mermaid()
 
     def generate_stream_response(self, input):
-        for event in graph.stream({"messages": ("user", input)}, config, stream_mode="values"):
+        events = graph.stream({"messages": ("user", input)}, config, stream_mode="values")
+        for event in events:
+            current_state = event.get("dialog_state")
+            print("State: ")
+            print(graph.get_state(config).next[0])
+            print("Event: ")
+            print(event)
+            if current_state:
+                yield f"Currently in: ", current_state[-1]
             message = event.get("messages")
             if isinstance(message, list):
                 message = message[-1]
