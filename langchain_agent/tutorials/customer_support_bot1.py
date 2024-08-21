@@ -210,23 +210,33 @@ def term_io():
     #    for event in events:
     #        _print_event(event, _printed)
 
+from langchain_core.runnables.graph import NodeStyles
+
 class SupportBotIO1(AssistantInterface):
     def __init__(self):
         _printed = set()
     
-    def get_graph(self):
-        return graph.get_graph().draw_mermaid()
+    def get_graph(self, active = "__start__") -> str:
+        diagram = graph.get_graph().draw_mermaid()
+        diagram = diagram.splitlines()
+        theme = "%%{init: {'theme':'base'}}%%"
+        diagram[0] = theme
+        diagram = diagram[:-3]
+        diagram.append("\tclassDef default fill:#EEE,stroke:#000,stroke-width:1px")
+        #diagram.append("\tstyle "+ active +" fill:#EAA,stroke:#000,stroke-width:3px")
+        diagram.append("\tclassDef active fill:#EAA,stroke:#000,stroke-width:3px")
+        diagram.append("\tclass " + active + " active")
+        diagram = "\n".join(diagram)
+        print("GRAPH: ")
+        print(diagram)
+        #return theme + diagram
+        return diagram
 
     def generate_stream_response(self, input):
         events = graph.stream({"messages": ("user", input)}, config, stream_mode="values")
         for event in events:
-            current_state = event.get("dialog_state")
             print("State: ")
             print(graph.get_state(config).next[0])
-            print("Event: ")
-            print(event)
-            if current_state:
-                yield f"Currently in: ", current_state[-1]
             message = event.get("messages")
             if isinstance(message, list):
                 message = message[-1]

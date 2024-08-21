@@ -8,10 +8,6 @@ assistant = SupportBotIO1()
 
 st.title('Test LLM chat')
 
-with st.sidebar:
-    st.header("Log")
-    st_mermaid(assistant.get_graph())
-
 # Init chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -19,6 +15,13 @@ if "messages" not in st.session_state:
 # Init log
 if "log" not in st.session_state:
     st.session_state.log = ["Jamonada"]
+
+if "graph_state" not in st.session_state:
+    st.session_state.graph_state = "__start__"
+
+with st.sidebar:
+    st.header("State")
+    st_mermaid(assistant.get_graph(st.session_state.graph_state))
 
 # Display chat messages on app rerun
 for message in st.session_state.messages:
