@@ -6,6 +6,11 @@ from langchain_agent.tutorials.customer_support_bot1 import SupportBotIO1
 #assistant = MockAssistant()
 assistant = SupportBotIO1()
 
+# Gets the graph mermaid based on the assistant and its state
+@st.cache_data
+def mermaid_graph(state: str):
+    return assistant.get_graph(state)
+
 st.title('Test LLM chat')
 
 # Init chat history
@@ -19,18 +24,10 @@ if "log" not in st.session_state:
 if "graph_state" not in st.session_state:
     st.session_state.graph_state = "__start__"
 
-with st.sidebar:
-    st.header("State")
-    st_mermaid(assistant.get_graph(st.session_state.graph_state))
-
 # Display chat messages on app rerun
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
-
-# Display log on app rerun
-for log_message in st.session_state.log:
-    st.sidebar.caption(log_message)
 
 # Accept user input
 if prompt := st.chat_input("Hello"):
@@ -43,6 +40,19 @@ if prompt := st.chat_input("Hello"):
 # Display assistant response in chat message container
 if prompt:
     with st.chat_message("assistant"):
-        response = st.write_stream(assistant.generate_stream_response(prompt))
+        response = st.write_stream(assistant.generate_stream_response(prompt, st.session_state))
+        #st.session_state.graph_state = state_aux[0]
     # Add assistant response to chat history
     st.session_state.messages.append({"role": "assistant", "content": response})
+
+print("Session state:")
+print(st.session_state.graph_state)
+
+# Display log on app rerun
+with st.sidebar:
+    st.header("State")
+    st_mermaid(mermaid_graph(st.session_state.graph_state))
+
+for log_message in st.session_state.log:
+    st.sidebar.caption(log_message)
+st.sidebar.caption(st.session_state.graph_state)

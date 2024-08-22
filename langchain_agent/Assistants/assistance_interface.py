@@ -1,5 +1,5 @@
 class AssistantInterface:
-    def generate_stream_response(self, input):
+    def generate_stream_response(self, input, state):
         pass
 
     def get_graph(self) -> str:

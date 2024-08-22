@@ -232,16 +232,18 @@ class SupportBotIO1(AssistantInterface):
         #return theme + diagram
         return diagram
 
-    def generate_stream_response(self, input):
+    def generate_stream_response(self, input, state):
         events = graph.stream({"messages": ("user", input)}, config, stream_mode="values")
         for event in events:
-            print("State: ")
-            print(graph.get_state(config).next[0])
+            state.graph_state = graph.get_state(config).next[0]
             message = event.get("messages")
             if isinstance(message, list):
                 message = message[-1]
             msg_repr = message.pretty_repr(html=False)
             if not isinstance(message, HumanMessage):
+                yield "================================= State: "
+                yield state.graph_state
+                yield ' =================================\n\r'
                 yield msg_repr
                 yield '\n\r'
                 #yield f":red[{message.content}]\n\r"
