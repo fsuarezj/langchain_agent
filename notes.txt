@@ -1,0 +1,31 @@
+what is ToolMessage?
+
+
+Agents:
+- Get form objective
+- Get sections
+- Divide in questions
+- Define question (type, constraint)
+- Find interdependency (conditionality)
+- Find gaps (other questions)
+- PGI review
+- Thematic experts:
+    - WASH
+    - LH
+    - Health
+    - etc.
+
+- Data agent
+    - Create xlsform
+    - Variables names
+    - All questions close?
+
+- Data Resp
+    - Is there KKI Data
+    - Consent
+    - Risk to harm?
+
+- Data Process
+    - Understand questionnaire objective
+    - Get insights
+    - Get dashboard/report
