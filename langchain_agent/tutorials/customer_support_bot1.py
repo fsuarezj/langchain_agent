@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 
 from langchain_core.runnables import RunnableLambda
-from langchain_core.messages import ToolMessage, AIMessage, HumanMessage
+from langchain_core.messages import ToolMessage, HumanMessage
 
 from langgraph.prebuilt import ToolNode
 
@@ -210,32 +210,35 @@ def term_io():
     #    for event in events:
     #        _print_event(event, _printed)
 
-from langchain_core.runnables.graph import NodeStyles
-
 class SupportBotIO1(AssistantInterface):
     def __init__(self):
-        _printed = set()
+        self._graph = graph
+        self._unthemed_diagram = []
+        self.set_diagram()
     
-    def get_graph(self, active = "__start__") -> str:
-        diagram = graph.get_graph().draw_mermaid()
+    def set_diagram(self, active = "__start__"):
+        diagram = self._graph.get_graph().draw_mermaid()
         diagram = diagram.splitlines()
         theme = "%%{init: {'theme':'base'}}%%"
         diagram[0] = theme
         diagram = diagram[:-3]
         diagram.append("\tclassDef default fill:#EEE,stroke:#000,stroke-width:1px")
-        #diagram.append("\tstyle "+ active +" fill:#EAA,stroke:#000,stroke-width:3px")
         diagram.append("\tclassDef active fill:#EAA,stroke:#000,stroke-width:3px")
+        self._unthemed_diagram = "\n".join(diagram)
+        #return theme + diagram
+    
+    def get_diagram(self, active = "__start__") -> str:
+        diagram = self._unthemed_diagram.splitlines()
         diagram.append("\tclass " + active + " active")
         diagram = "\n".join(diagram)
         print("GRAPH: ")
         print(diagram)
-        #return theme + diagram
         return diagram
 
     def generate_stream_response(self, input, state):
-        events = graph.stream({"messages": ("user", input)}, config, stream_mode="values")
+        events = self._graph.stream({"messages": ("user", input)}, config, stream_mode="values")
         for event in events:
-            state.graph_state = graph.get_state(config).next[0]
+            state.graph_state = self._graph.get_state(config).next[0]
             message = event.get("messages")
             if isinstance(message, list):
                 message = message[-1]

@@ -1,11 +1,12 @@
 from dotenv import load_dotenv
 
 from langchain_core.runnables import RunnableLambda
-from langchain_core.messages import ToolMessage
+from langchain_core.messages import ToolMessage, HumanMessage
 
 from langgraph.prebuilt import ToolNode
 
-from tools_travel_example import fetch_user_flight_information, search_flights, lookup_policy, update_ticket_to_new_flight, cancel_ticket, search_car_rentals, book_car_rental, update_car_rental, cancel_car_rental, search_hotels, book_hotel, update_hotel, cancel_hotel, search_trip_recommendations, book_excursion, update_excursion, cancel_excursion
+from .tools_travel_example import fetch_user_flight_information, search_flights, lookup_policy, update_ticket_to_new_flight, cancel_ticket, search_car_rentals, book_car_rental, update_car_rental, cancel_car_rental, search_hotels, book_hotel, update_hotel, cancel_hotel, search_trip_recommendations, book_excursion, update_excursion, cancel_excursion
+from ..assistants.assistance_interface import AssistantInterface
 
 load_dotenv()
 local_file = "travel2.sqlite"
@@ -66,7 +67,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable, RunnableConfig
 from datetime import datetime
 
-from global_conf import GPT_MODEL
+from ..global_conf import GPT_MODEL
 
 class Assistant:
     def __init__(self, runnable: Runnable) -> None:
@@ -84,6 +85,7 @@ class Assistant:
             else:
                 break
         return {"messages": result}
+    
 
 llm = ChatOpenAI(model=GPT_MODEL)
 
@@ -195,44 +197,127 @@ config = {
 }
 
 
-_printed = set()
-while True:
-    user_input = input("User: ")
-    if user_input.lower() in ["quit", "exit", "q", "bye"]:
-        print("Goodbye!")
-        break
-    events = graph.stream(
-        {"messages": ("user", user_input)}, config, stream_mode="values"
-    )
-    for event in events:
-        _print_event(event, _printed)
-    snapshot = graph.get_state(config)
-    while snapshot.next:
-        user_input = input(
-            "Do you approve of the above actions? Type 'y' to continue;"
-            " otherwise, explain your requested changed.\n\n"
+def term_io():
+    _printed = set()
+    while True:
+        user_input = input("User: ")
+        if user_input.lower() in ["quit", "exit", "q", "bye"]:
+            print("Goodbye!")
+            break
+        events = graph.stream(
+            {"messages": ("user", user_input)}, config, stream_mode="values"
         )
-        if user_input.strip() == "y":
-            # Just continue
-            result = graph.invoke(None, config)
-        else:
-            # Satisfy the tool invocation by
-            # providing instructions on the requested changes / change of mind
-            result = graph.invoke(
-                {
-                    "messages": [
-                        ToolMessage(
-                            tool_call_id=event["messages"][-1].tool_calls[0]["id"],
-                            content=f"API call denied by user. Reasoning: '{user_input}'. Continue assisting, accounting for the user's input.",
-                        )
-                    ]
-                },
-                config,
-            )
+        for event in events:
+            _print_event(event, _printed)
         snapshot = graph.get_state(config)
-#for question in tutorial_questions:
-#    events = graph.stream(
-#        {"messages": ("user", question)}, config, stream_mode="values"
-#    )
-#    for event in events:
-#        _print_event(event, _printed)
+        while snapshot.next:
+            user_input = input(
+                "Do you approve of the above actions? Type 'y' to continue;"
+                " otherwise, explain your requested changed.\n\n"
+            )
+            if user_input.strip() == "y":
+                # Just continue
+                result = graph.invoke(None, config)
+            else:
+                # Satisfy the tool invocation by
+                # providing instructions on the requested changes / change of mind
+                result = graph.invoke(
+                    {
+                        "messages": [
+                            ToolMessage(
+                                tool_call_id=event["messages"][-1].tool_calls[0]["id"],
+                                content=f"API call denied by user. Reasoning: '{user_input}'. Continue assisting, accounting for the user's input.",
+                            )
+                        ]
+                    },
+                    config,
+                )
+            snapshot = graph.get_state(config)
+    #for question in tutorial_questions:
+    #    events = graph.stream(
+    #        {"messages": ("user", question)}, config, stream_mode="values"
+    #    )
+    #    for event in events:
+    #        _print_event(event, _printed)
+
+class SupportBotIO2(AssistantInterface):
+    def __init__(self):
+        self._graph = graph
+        self._unthemed_diagram = []
+        self._set_diagram()
+    
+    def _pretty_message(self, event, graph_state):
+        result = ""
+        message = event.get("messages")
+        if isinstance(message, list):
+            message = message[-1]
+        msg_repr = message.pretty_repr(html=False)
+        if not isinstance(message, HumanMessage):
+            result += "================================= State: "
+            result += graph_state
+            result += ' =================================\n\r'
+            result += msg_repr
+            result += '\n\r'
+            #yield f":red[{message.content}]\n\r"
+        return result
+    
+    def _set_diagram(self, active = "__start__"):
+        diagram = self._graph.get_graph().draw_mermaid()
+        diagram = diagram.splitlines()
+        theme = "%%{init: {'theme':'base'}}%%"
+        diagram[0] = theme
+        diagram = diagram[:-3]
+        diagram.append("\tclassDef default fill:#EEE,stroke:#000,stroke-width:1px")
+        diagram.append("\tclassDef active fill:#EAA,stroke:#000,stroke-width:3px")
+        self._unthemed_diagram = "\n".join(diagram)
+        #return theme + diagram
+    
+    def get_diagram(self, active = "__start__") -> str:
+        diagram = self._unthemed_diagram.splitlines()
+        diagram.append("\tclass " + active + " active")
+        diagram = "\n".join(diagram)
+        print("GRAPH: ")
+        print(diagram)
+        return diagram
+
+    def generate_stream_response(self, input, state):
+        print(f"Calling generate_stream_response with input={input} and state={state}")
+        if state.graph_state != "waiting_for_input":
+            # If no tool is called
+            events = self._graph.stream({"messages": ("user", input)}, config, stream_mode="values")
+            for event in events:
+                state.graph_state = self._graph.get_state(config).next[0]
+                yield self._pretty_message(event, state.graph_state)
+        else:
+            # If tool is called
+            if input.strip() == "y":
+                # If tool is accepted
+                events = self._graph.stream(None, config, stream_mode="values")
+                for event in events:
+                    state.graph_state = self._graph.get_state(config).next[0]
+                    yield self._pretty_message(event, state.graph_state)
+            else:
+                # If tool is rejected
+                state.graph_state = "assistant"
+                print(f"Rejecting use of tool with id {state.snapshot.values['messages'][-1].tool_calls[0]['id']}")
+                event = graph.invoke(
+                    {
+                        "messages": [
+                            ToolMessage(
+                                tool_call_id=state.snapshot.values["messages"][-1].tool_calls[0]["id"],
+                                content=f"API call denied by user. Reasoning: '{input}'. Continue assisting, accounting for the user's input.",
+                            )
+                        ]
+                    },
+                    config,
+                )
+                yield self._pretty_message(event, state.graph_state)
+        snapshot = graph.get_state(config)
+
+        #If there is man-in-the-loop request
+        if snapshot.next:
+            print("Setting waiting_for_input status")
+            state.graph_state = "waiting_for_input" 
+            yield "Do you approve of the above actions? Type 'y' to continue; otherwise, explain your requested changed.\n\r\n\r"
+        state.snapshot = snapshot
+#term_io()

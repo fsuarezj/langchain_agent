@@ -6,11 +6,13 @@ import requests
 import openai
 from langchain_core.tools import tool
 
-response = requests.get(
-    "https://storage.googleapis.com/benchmarks-artifacts/travel-db/swiss_faq.md"
-)
-response.raise_for_status()
-faq_text = response.text
+#response = requests.get(
+#    "https://storage.googleapis.com/benchmarks-artifacts/travel-db/swiss_faq.md"
+#)
+#response.raise_for_status()
+#faq_text = response.text
+with open("langchain_agent/tutorials/swiss_faq.md", "r", encoding="utf8") as file:
+    faq_text = file.read()
 
 docs = [{"page_content": txt} for txt in re.split(r"'(?=\n##)", faq_text)]
 
