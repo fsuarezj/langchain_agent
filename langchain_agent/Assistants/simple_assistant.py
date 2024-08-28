@@ -63,6 +63,4 @@ tools1 = [
     set_country
 ]
 
-Follow tutorial: https://langchain-ai.github.io/langgraph/tutorials/customer-support/customer-support/#part-1-zero-shot-agent
-
-Create simple assistant and write graph in langGraph chatbot with tools to get and set the country
+#Follow tutorial: https://langchain-ai.github.io/langgraph/tutorials/customer-support/customer-support/#part-1-zero-shot-agent
