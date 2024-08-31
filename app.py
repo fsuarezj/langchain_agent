@@ -47,7 +47,7 @@ if uploaded_file:
     filetype = uploaded_file.type.split("/")[1]
     tmp_file = save_tmp_file(uploaded_file)
     assistant.load_file(tmp_file, filetype)
-    st.write(assistant.read_first_page())
+    st.write(assistant.get_page(0))
     #stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
     #st.write(stringio)
     #string_data = stringio.read()
