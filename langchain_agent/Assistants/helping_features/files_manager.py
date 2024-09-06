@@ -25,6 +25,12 @@ class FilesManager:
     
     def get_pages(self) -> list[str]:
         return self._pages
+    
+    def whole_content(self) -> str:
+        return "\n".join([i.page_content for i in self._pages])
 
-    def get_page(self, int) -> str:
+    def get_page_document(self, int) -> str:
         return self._pages[int]
+
+    def get_page_content(self, int) -> str:
+        return self._pages[int].page_content
