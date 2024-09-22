@@ -29,3 +29,15 @@ Agents:
     - Understand questionnaire objective
     - Get insights
     - Get dashboard/report
+
+
+
+
+TASKS:
+X Create form parser for word with tables
+X Test forms with gpt4
+- Review and correct output form2
+- Create form parser for excel
+- Test forms with gpt4 and new parser
+- Create training dataset
+- Fine tuning

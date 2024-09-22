@@ -1,0 +1,238 @@
+{
+  "title": "Baseline Household Survey Terekeka",
+  "description": "Assessment question guide for building community resilience to acute shocks and chronic stresses in Terekeka.",
+  "content": [
+    {
+      "type": "note",
+      "label": "Hello, this is a survey to serve as a baseline for the project, to understand the state",
+      "hint": ""
+    },
+    {
+      "type": "section",
+      "label": "SECTION A: DEMOGRAPHICS",
+      "hint": "",
+      "content": [
+        {
+          "type": "select_one",
+          "num": 1,
+          "label": "What is your Payam?",
+          "hint": "Select one Payam",
+          "options": [
+            {"label": "Muni"},
+            {"label": "Bokama"},
+            {"label": "Tombek"},
+            {"label": "Swak-Le"},
+            {"label": "Naungguli"},
+            {"label": "Riiong"},
+            {"label": "Mulla"},
+            {"label": "Tali"},
+            {"label": "Mijiki"},
+            {"label": "Bari Kirot"},
+            {"label": "Tindilo"},
+            {"label": "Somaring"},
+            {"label": "M. Bura"}
+          ]
+        },
+        {
+          "type": "select_one",
+          "num": 2,
+          "label": "What is your Boma?",
+          "hint": "Select one Boma",
+          "options": []  // Options not provided in the text
+        },
+        {
+          "type": "select_one",
+          "num": 3,
+          "label": "Are you the head of household?",
+          "hint": "Single Response",
+          "options": [
+            {"label": "Yes"},
+            {"label": "No"}
+          ]
+        },
+        {
+          "type": "select_one",
+          "num": 3.1,
+          "label": "If not you, is the Household head male or female?",
+          "hint": "Single Response",
+          "options": [
+            {"label": "Male"},
+            {"label": "Female"}
+          ]
+        },
+        {
+          "type": "select_one",
+          "num": 3.2,
+          "label": "Do you have aged people or people with disability in your HH?",
+          "hint": "Single Response",
+          "options": [
+            {"label": "YES"},
+            {"label": "NO"}
+          ]
+        },
+        {
+          "type": "select_one",
+          "num": 4,
+          "label": "The Head of HH is a:",
+          "hint": "",
+          "options": [
+            {"label": "Widow"},
+            {"label": "Widower"},
+            {"label": "Female headed with disability"},
+            {"label": "Male headed with disability"},
+            {"label": "Child headed (below 18 years)"},
+            {"label": "Other (please specify)"}
+          ]
+        },
+        {
+          "type": "integer",
+          "num": 8,
+          "label": "How many people live in your household (all age groups, disaggregated per sex, age and abilities here)?",
+          "hint": "Please include all members of the household, including the head of household"
+        },
+        {
+          "type": "integer",
+          "num": 8.1,
+          "label": "Children with disability (for children only)",
+          "hint": ""
+        },
+        {
+          "type": "select_one",
+          "num": 9,
+          "label": "Are you aware of any projects currently being implemented by the South Sudan Red Cross (SSRC) in this Payam?",
+          "hint": "Single response",
+          "options": [
+            {"label": "Yes"},
+            {"label": "No"}
+          ]
+        },
+        {
+          "type": "select_one",
+          "num": 9.1,
+          "label": "If yes, have you been benefiting from it?",
+          "hint": "Single response",
+          "options": [
+            {"label": "Yes"},
+            {"label": "No"}
+          ]
+        },
+        {
+          "type": "text",
+          "num": 9.2,
+          "label": "If yes, what does the project provide?",
+          "hint": ""
+        },
+        {
+          "type": "text",
+          "num": 9.3,
+          "label": "If yes, please explain more.",
+          "hint": ""
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "label": "SECTION B: Immediate reduction in risk of waterborne and water related diseases in 11 targeted communities",
+      "hint": "",
+      "content": [
+        {
+          "type": "select_one",
+          "num": 2.2,
+          "label": "Where do you collect water if there is a problem with the current source?",
+          "hint": "",
+          "options": [
+            {"label": "Another borehole"},
+            {"label": "Rainwater"},
+            {"label": "Bottled water"},
+            {"label": "River water"},
+            {"label": "Water trucking"},
+            {"label": "Water from donkey carts"},
+            {"label": "Other source"}
+          ]
+        },
+        {
+          "type": "select_one",
+          "num": 3,
+          "label": "Do you need to pay?",
+          "hint": "",
+          "options": [
+            {"label": "Yes"},
+            {"label": "No"}
+          ]
+        },
+        {
+          "type": "decimal",
+          "num": 3.1,
+          "label": "If yes, how much?",
+          "hint": "numeric"
+        },
+        {
+          "type": "text",
+          "num": 3.2,
+          "label": "If yes, to whom?",
+          "hint": ""
+        },
+        {
+          "type": "select_one",
+          "num": 3.3,
+          "label": "If yes, where is the money paid being spent?",
+          "hint": "",
+          "options": [
+            {"label": "Maintenance"},
+            {"label": "Development of the station"},
+            {"label": "Other (please explain)"},
+            {"label": "I don’t know"}
+          ]
+        },
+        {
+          "type": "select_one",
+          "num": 23,
+          "label": "Did you/any family member suffer from cholera/diarrhea in the past one month?",
+          "hint": "",
+          "options": [
+            {"label": "Yes"},
+            {"label": "No"},
+            {"label": "Do not know"}
+          ]
+        },
+        {
+          "type": "select_multiple",
+          "num": "23.1",
+          "label": "What steps does your household take to prevent diarrhea?",
+          "hint": "",
+          "options": [
+            {"label": "Regular hand washing with soap"},
+            {"label": "Boiling or purifying water"},
+            {"label": "Avoiding contaminated food"},
+            {"label": "Using a water filter"},
+            {"label": "Other (please specify)"},
+            {"label": "No specific prevention steps"}
+          ]
+        },
+        {
+          "type": "select_one",
+          "num": 24,
+          "label": "Did you/any family member suffer from any skin diseases or eye infection in the past one month?",
+          "hint": "",
+          "options": [
+            {"label": "Yes"},
+            {"label": "No"}
+          ]
+        },
+        {
+          "type": "select_one",
+          "num": 24.1,
+          "label": "If yes, what was the cause?",
+          "hint": "",
+          "options": [
+            {"label": "Water"},
+            {"label": "Infection"},
+            {"label": "Other (explain)"},
+            {"label": "Don’t know"}
+          ]
+        }
+      ]
+    }
+  ],
+  "error": ""
+}

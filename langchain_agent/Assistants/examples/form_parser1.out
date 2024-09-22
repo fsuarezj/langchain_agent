@@ -1,0 +1,86 @@
+{
+    "title": "Household Survey Building resilience - Tereka",
+    "description": "Assessment question guide for 'building community resilience to acute shocks and chronic stresses in Terekeka'",
+    "content": [
+        {
+            "type": "note",
+            "label": "Hello my name is (Mention your name) I am an enumerator in the project of building community resilience to acute shocks and chronic stresses in Terekeka. The implementing organization is carrying out a survey. We would like you to provide us with some basic information about these topics in your community. The interview will take about 25-35 minutes. This information will help the project implementers (South Sudan Red Cross) to improve on its performance and the performance of other related projects that may be introduced in the area in the future. All the information we obtain will remain strictly confidential and your answers will never be identified. Also, you are not obliged to answer any questions you don\u2019t want to, and you may withdraw from the interview at any time."
+        },
+        {
+            "type": "select_one",
+            "num": 1,
+            "label": "At this time, do you want to ask us anything about the survey? May I start now?",
+            "options": [
+                {
+                    "label": "Yes (proceed with the questions)"
+                },
+                {
+                    "label": "No (do not proceed with the questions)"
+                }
+            ]
+        },
+        {
+            "type": "note",
+            "label": "In case the answer is 'NO' thank them and do not interview (do not mark, tick or circle anything in the questionnaire)"
+        },
+        {
+            "type": "text",
+            "num": 2,
+            "label": "Date of Enumeration:"
+        },
+        {
+            "type": "text",
+            "num": 3,
+            "label": "Name of Enumerator:"
+        },
+        {
+            "type": "note",
+            "label": "First I want to ask you some general questions about yourself and household."
+        },
+        {
+            "type": "section",
+            "label": "SECTION A: DEMOGRAPHICS",
+            "content": [
+                {
+                    "type": "select_one",
+                    "num": 4,
+                    "label": "Sex",
+                    "hint": "Do not ask. Observe",
+                    "options": [
+                        {
+                            "label": "Male"
+                        },
+                        {
+                            "label": "Female"
+                        }
+                    ]
+                },
+                {
+                    "label": "What is your approximate age?",
+                    "num": 5,
+                    "type": "select_one",
+                    "options": [
+                        {
+                            "label": "15-24"
+                        },
+                        {
+                            "label": "25-34"
+                        },
+                        {
+                            "label": "35-44"
+                        },
+                        {
+                            "label": "45-54"
+                        },
+                        {
+                            "label": "55-64"
+                        },
+                        {
+                            "label": "65+"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
