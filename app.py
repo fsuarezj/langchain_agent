@@ -4,7 +4,10 @@ import os
 from streamlit_mermaid import st_mermaid
 from langchain_agent.assistants.base_assistant import BaseAssistant
 
-assistant = BaseAssistant()
+@st.cache_resource
+def load_assistant():
+    return BaseAssistant()
+assistant = load_assistant()
 #assistant = SupportBotIO3()
 
 # Gets the graph mermaid based on the assistant and its state
