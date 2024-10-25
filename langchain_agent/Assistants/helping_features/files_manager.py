@@ -10,6 +10,7 @@ class FilesManager:
     def __init__(self):
         #self._loader = None
         #self._pages = []
+        self._document_loaded = False
         self._content = ""
 
     def _parse_doc(self, file_path):
@@ -44,6 +45,8 @@ class FilesManager:
             case "vnd.openxmlformats-officedocument.wordprocessingml.document":
                 print("word doc found")
                 self._content = self._parse_doc(file)
+                if self._content != "":
+                    self._document_loaded = True
                 #self._pages = self._loader.load_and_split()
             case _:
                 print("File not supported")

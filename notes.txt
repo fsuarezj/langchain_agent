@@ -17,7 +17,6 @@ Agents:
 
 - Data agent
     - Create xlsform
-    - Variables names
     - All questions close?
 
 - Data Resp
@@ -36,6 +35,12 @@ Agents:
 TASKS:
 X Create form parser for word with tables
 X Test forms with gpt4
+- Convert graph in an @st.cache_resource
+- Fix connection with form_parser
+- Create variable_creator
+- Create Data Agent to create xlsform
+
+
 - Review and correct output form2
 - Create form parser for excel
 - Test forms with gpt4 and new parser
