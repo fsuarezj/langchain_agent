@@ -35,12 +35,17 @@ Agents:
 TASKS:
 X Create form parser for word with tables
 X Test forms with gpt4
-- Convert graph in an @st.cache_resource
-- Fix connection with form_parser
+X Convert graph in an @st.cache_resource
+X Fix connection with form_parser
+X Review flow of graph, it always executes Orchestrator chat and later makes the decision where to go next. Now going directly to formParser, but probably need to be managed from Orchestrator as tools
+X When going out of formParser doesn't overwrite the state with the parsed questionnaire
+X Fix uploading after chatting
+- Create agent to dialog with form
 - Create variable_creator
 - Create Data Agent to create xlsform
 
 
+- If I want to make orchestrator a real distributor, check in https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/multi_agent/agent_supervisor.ipynb
 - Review and correct output form2
 - Create form parser for excel
 - Test forms with gpt4 and new parser

@@ -18,19 +18,19 @@ def mermaid_graph(state: str):
     else:
         return assistant.get_diagram("sensitive_tools")
 
+# Saves tm
 @st.cache_data
-def save_tmp_file(uploaded_file):
+def load_file(uploaded_file, filetype):
     temp_file = "temp.tmp"
     temp_path = os.path.join("cache", temp_file)
+    # First save the file
     with open(temp_path, "wb") as file:
         file.write(uploaded_file.getvalue())
+    # Then load the file in the assistant
+    assistant.load_file(temp_path, filetype)
     return temp_path
 
 st.title('Test LLM chat')
-
-#if st.session_state == None:
-    #print("Iniciando State")
-    #st.session_state = State()
 
 # Init chat history
 if "messages" not in st.session_state:
@@ -48,13 +48,8 @@ uploaded_file = st.file_uploader("Upload your survey", type=['pdf', 'docx'])
 if uploaded_file:
     print(f"Filetype: {uploaded_file.type}")
     filetype = uploaded_file.type.split("/")[1]
-    tmp_file = save_tmp_file(uploaded_file)
-    assistant.load_file(tmp_file, filetype)
-    st.write(assistant.whole_content())
-    #stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
-    #st.write(stringio)
-    #string_data = stringio.read()
-    #st.write(string_data)
+    tmp_file = load_file(uploaded_file, filetype)
+    #st.write(assistant.whole_content())
 
 # Display chat messages on app rerun
 for message in st.session_state["messages"]:

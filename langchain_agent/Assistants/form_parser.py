@@ -7,7 +7,10 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
+from langchain_core.runnables import RunnableConfig
+
 from ..global_conf import GPT_MODEL
+from .base_state import BaseState
 
 class ItemType(str, Enum):
     note = 'note'
@@ -53,7 +56,9 @@ class FormParser:
                     {format_instructions}
                     Do not create or add anything to the questionnaire, just work with the questionnaire provided below.
 
+                    Q:
                     {form_parser1_in}
+                    A:
                     {form_parser1_out}
 
                     Q:
@@ -76,6 +81,26 @@ class FormParser:
             | self._llm
             | self._parser
         )
+
+    def __call__(self, state: BaseState, config: RunnableConfig):
+        print("CALL FormParser")
+        # Opening One-shot examples
+        with open("langchain_agent/assistants/examples/form_parser1.in", 'r', encoding="utf-8") as file:
+            form_parser1_in = ""#file.read()
+        with open("langchain_agent/assistants/examples/form_parser1.out", 'r') as file:
+            form_parser1_out = ""#json.load(file)
+        
+        # Calling the LLM
+        result = {"messages": self._runnable.invoke(
+            {
+                "source_questionnaire": state["source_questionnaire"],
+                "format_instructions": self._parser.get_format_instructions(),
+                "form_parser1_in": form_parser1_in,
+                "form_parser1_out": form_parser1_out
+                }
+            )}
+        parsed_questionnaire = result["messages"]
+        return {"messages": "Form parsed", "source_questionnaire": parsed_questionnaire, "parsed_questionnaire": True}
 
     def run(self, input, state):
         print("ENTRA")

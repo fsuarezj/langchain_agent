@@ -12,6 +12,7 @@ from langchain_core.messages import HumanMessage
 from dotenv import load_dotenv
 import uuid
 import functools
+import types
 
 class BaseAssistant(AssistantInterface, FilesManager):
     def __init__(self):
@@ -24,17 +25,26 @@ class BaseAssistant(AssistantInterface, FilesManager):
                 "thread_id": str(uuid.uuid4()),
             }
         }
+        self._graph.update_state(self._config, {
+            "parsed_questionnaire": False
+        })
     
     def load_file(self, file, filetype) -> None:
         super().load_file(file, filetype)
+        print("Loading file")
         self._graph.update_state(self._config, {
             "messages": self._graph.get_state(self._config).values["messages"],
             "source_questionnaire": self.whole_content(),
             "parsed_questionnaire": False
         })
+        events = self._graph.invoke({"messages": ("user", "Questionnaire uploaded")}, self._config, stream_mode="values")
+        #print(events)
     
-    def _wait_for_questionnaire(self, state):
+    def _route(self, state):
+        print("DECIDING:")
+        #print(self._get_state())
         if self._document_loaded and not self._get_state().values["parsed_questionnaire"]:
+            print("Going to parser")
             return "formParser"
         else:
             print("Not going to parser")
@@ -74,11 +84,12 @@ class BaseAssistant(AssistantInterface, FilesManager):
         #for i in agents:
             #builder.add_node(i.keywords["name"], i)
         builder.add_node("orchestrator", Orchestrator())
+        builder.add_node("formParser", FormParser())
         #builder.add_node("orchestrator", self._node_orchestrator)
-        builder.add_node("formParser", self._node_formParser)
+        #builder.add_node("formParser", self._node_formParser)
 
         builder.set_entry_point("orchestrator")
-        builder.add_conditional_edges("orchestrator", self._wait_for_questionnaire)
+        builder.add_conditional_edges("orchestrator", self._route) #,{"formParser": "formParser", "continue": END})
         builder.add_edge("formParser", "orchestrator")
         builder.add_edge("orchestrator", END)
         memory = SqliteSaver.from_conn_string(":memory:")
@@ -102,19 +113,14 @@ class BaseAssistant(AssistantInterface, FilesManager):
         print(diagram)
         return diagram
 
-    def generate_stream_response(self, input, state):
-        print(f"Calling generate_stream_response with input=")
-        print(input)
-        print("and state=")
-        print(state)
+    def generate_stream_response(self, input, state = types.SimpleNamespace()):
         events = self._graph.stream({"messages": ("user", input)}, self._config, stream_mode="values")
+        print("It entered")
+        #print(events)
         for event in events:
             state.graph_state = self._graph.get_state(self._config).next[0]
-            print("POST STREAM STATE IS")
-            print(state)
-            print("AFTER STATE FOR EVENT IS ")
-            print(event)
-            print(self._get_state())
+            print("STATE AFTER EVENT IS")
+            print(self._graph.get_state(self._config))
             message = event.get("messages")
             if isinstance(message, list):
                 message = message[-1]
@@ -125,5 +131,5 @@ class BaseAssistant(AssistantInterface, FilesManager):
                 yield ' =============================\n\r'
                 yield msg_repr
                 yield '\n\r'
-        snapshot = self._get_state()
-        state.snapshot = snapshot
+        #snapshot = self._get_state()
+        #state.snapshot = snapshot
