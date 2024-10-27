@@ -133,3 +133,10 @@ class BaseAssistant(AssistantInterface, FilesManager):
                 yield '\n\r'
         #snapshot = self._get_state()
         #state.snapshot = snapshot
+    
+    def get_json_form(self):
+        state = self._get_state()
+        if state.values["parsed_questionnaire"]:
+            return state.values["source_questionnaire"]
+        else:
+            return ""

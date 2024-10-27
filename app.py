@@ -28,7 +28,7 @@ def load_file(uploaded_file, filetype):
         file.write(uploaded_file.getvalue())
     # Then load the file in the assistant
     assistant.load_file(temp_path, filetype)
-    return temp_path
+    return assistant.get_json_form()
 
 st.title('Test LLM chat')
 
@@ -48,8 +48,12 @@ uploaded_file = st.file_uploader("Upload your survey", type=['pdf', 'docx'])
 if uploaded_file:
     print(f"Filetype: {uploaded_file.type}")
     filetype = uploaded_file.type.split("/")[1]
-    tmp_file = load_file(uploaded_file, filetype)
+    json_form = load_file(uploaded_file, filetype)
     #st.write(assistant.whole_content())
+    if json_form:
+        with st.expander("JSON Form"):
+            st.write(json_form)
+
 
 # Display chat messages on app rerun
 for message in st.session_state["messages"]:
