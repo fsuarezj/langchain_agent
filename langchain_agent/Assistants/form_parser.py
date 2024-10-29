@@ -1,46 +1,19 @@
-from enum import Enum
-from typing import List, Optional
-import json
-
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
-from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import RunnableConfig
 
 from ..global_conf import GPT_MODEL
+from .json_form import Questionnaire
 from .base_state import BaseState
-
-class ItemType(str, Enum):
-    note = 'note'
-    text = 'text'
-    integer = 'integer'
-    decimal = 'decimal'
-    select_one = 'select_one'
-    select_multiple = 'select_multiple'
-    section = 'section'
-
-class Option(BaseModel):
-    label: str = Field(description="option name")
-    #name: str = Field(description="internal name of the option, in camelCase, one or two words not starting with numbers, meaningful and without special characters")
-
-class Item(BaseModel):
-    type: ItemType = Field(description="type of the question, note or section")
-    question_num: Optional[int] = Field("number of the question in the questionnaire. Only defined if the item is a question, not for notes or sections. Unique for the whole questionnaire and starting with 1. Notes and sections do not have a number")
-    label: str = Field(description="question statement, note content or section title")
-    hint: str = Field(description="Any hint given to explain the question/note or how to ask or read it, if existing. It could also be some meaningful information about the section")
-    content: Optional[List['Item']] = Field(description="Only existing if type is a section, nested content of the section")
-    options: Optional[List[Option]] = Field(desctiption="if it's a select_one or select_multiple question, list of options")
-
-class Questionnaire(BaseModel):
-    title: Optional[str] = Field(description="title of the questionnaire, must be short (3 or 4 words) and meaningful, showing the content of the questionnaire and providing information to differenciate the questionnaire of other similar ones, for example the location, the project title and/or the disaster")
-    description: Optional[str] = Field(description="description of the questionnaire")
-    content: Optional[List[Item]] = Field(description="content of the questionnaire")
-    error: Optional[str] = Field(description="Only filled if there is an error in the form")
 
 class FormParser:
     def __init__(self):
+        self._llm = ChatOpenAI(model=GPT_MODEL)
+        self._parser = JsonOutputParser(pydantic_object=Questionnaire)
+        self._examples = []
+        self._load_examples()
         self._prompt = ChatPromptTemplate.from_messages(
             [
                 (
@@ -57,9 +30,9 @@ class FormParser:
                     Do not create or add anything to the questionnaire, just work with the questionnaire provided below.
 
                     Q:
-                    {form_parser1_in}
+                    {example1_in}
                     A:
-                    {form_parser1_out}
+                    {example1_out}
 
                     Q:
                     {source_questionnaire}
@@ -67,66 +40,42 @@ class FormParser:
                     """
                 )
             ]
-        )
-        self._llm = ChatOpenAI(model=GPT_MODEL)
-        self._parser = JsonOutputParser(pydantic_object=Questionnaire)
+        ).partial(format_instructions=self._parser.get_format_instructions(),
+                  example1_in=self._examples[0][0],
+                  example1_out=self._examples[0][1]
+                  )
+        runnable_args = {"source_questionnaire": RunnablePassthrough()}
         self._runnable = (
-            {
-                "source_questionnaire": RunnablePassthrough(),
-                "format_instructions": RunnablePassthrough(),
-                "form_parser1_in": RunnablePassthrough(),
-                "form_parser1_out": RunnablePassthrough()
-            }
-            | self._prompt 
-            | self._llm
-            | self._parser
+            runnable_args | self._prompt | self._llm | self._parser
         )
 
     def __call__(self, state: BaseState, config: RunnableConfig):
         print("CALL FormParser")
-        # Opening One-shot examples
-        with open("langchain_agent/assistants/examples/form_parser1.in", 'r', encoding="utf-8") as file:
-            form_parser1_in = ""#file.read()
-        with open("langchain_agent/assistants/examples/form_parser1.out", 'r') as file:
-            form_parser1_out = ""#json.load(file)
-        
         # Calling the LLM
         result = {"messages": self._runnable.invoke(
             {
-                "source_questionnaire": state["source_questionnaire"],
-                "format_instructions": self._parser.get_format_instructions(),
-                "form_parser1_in": form_parser1_in,
-                "form_parser1_out": form_parser1_out
+                "source_questionnaire": state["source_questionnaire"]
                 }
             )}
         parsed_questionnaire = result["messages"]
-        for i in parsed_questionnaire:
-            print("-- QUESTION --\n")
-            print(i)
         return {"messages": "Form parsed", "source_questionnaire": parsed_questionnaire, "parsed_questionnaire": True}
-
-    def run(self, input, state):
-        print("ENTRA")
+    
+    def _load_examples(self):
+        # Load examples for one-shot or few-shots
         with open("langchain_agent/assistants/examples/form_parser1.in", 'r', encoding="utf-8") as file:
             form_parser1_in = ""#file.read()
         with open("langchain_agent/assistants/examples/form_parser1.out", 'r') as file:
             form_parser1_out = ""#json.load(file)
-        
-        print("QUESTIOOOOON")
-        print(state.values["source_questionnaire"])
+        self._examples.append((form_parser1_in, form_parser1_out))
 
-        result = {"messages": self._runnable.invoke(
-            {
-                "source_questionnaire": state.values["source_questionnaire"],
-                "format_instructions": self._parser.get_format_instructions(),
-                "form_parser1_in": form_parser1_in,
-                "form_parser1_out": form_parser1_out
-                }
-            )}
-        #print("Divided questions is: ")
-        #print(result["messages"])
-        state.values["parsed_questionnaire"] = True
-        #for i in divided["messages"].content:
-            #print("-- QUESTION --\n")
-            #print(i)
-        return result
+#    def run(self, input, state):
+#        result = {"messages": self._runnable.invoke(
+#            {
+#                "source_questionnaire": state.values["source_questionnaire"],
+#                "format_instructions": self._parser.get_format_instructions(),
+#                "form_parser1_in": form_parser1_in,
+#                "form_parser1_out": form_parser1_out
+#                }
+#            )}
+#        state.values["parsed_questionnaire"] = True
+#        return result
