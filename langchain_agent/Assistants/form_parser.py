@@ -27,10 +27,10 @@ class Option(BaseModel):
 
 class Item(BaseModel):
     type: ItemType = Field(description="type of the question, note or section")
-    num: Optional[int] = Field("number of the question in the questionnaire. Only defined if the item is a question, not for notes or sections")
+    question_num: Optional[int] = Field("number of the question in the questionnaire. Only defined if the item is a question, not for notes or sections. Unique for the whole questionnaire and starting with 1. Notes and sections do not have a number")
     label: str = Field(description="question statement, note content or section title")
-    hint: str = Field(description="any hint given to explain the question or how to ask it, if existing. Or any aditional meaningful information about the note or section")
-    content: Optional[List['Item']] = Field(description="content of the section, if type is a section")
+    hint: str = Field(description="Any hint given to explain the question/note or how to ask or read it, if existing. It could also be some meaningful information about the section")
+    content: Optional[List['Item']] = Field(description="Only existing if type is a section, nested content of the section")
     options: Optional[List[Option]] = Field(desctiption="if it's a select_one or select_multiple question, list of options")
 
 class Questionnaire(BaseModel):
@@ -100,6 +100,9 @@ class FormParser:
                 }
             )}
         parsed_questionnaire = result["messages"]
+        for i in parsed_questionnaire:
+            print("-- QUESTION --\n")
+            print(i)
         return {"messages": "Form parsed", "source_questionnaire": parsed_questionnaire, "parsed_questionnaire": True}
 
     def run(self, input, state):
