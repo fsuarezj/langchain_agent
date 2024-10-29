@@ -5,3 +5,4 @@
 *.cpython
 cache
 tests/tmp
+*/__pycache__/*
