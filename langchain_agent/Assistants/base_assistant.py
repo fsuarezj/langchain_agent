@@ -2,8 +2,10 @@ from .assistance_interface import AssistantInterface
 from .helping_features.files_manager import FilesManager
 
 from .base_state import BaseState
+from .form_loader import FormLoader
 from .form_parser import FormParser
 from .orchestrator import Orchestrator
+from .form_expert import FormExpert
 
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import StateGraph, END
@@ -37,7 +39,7 @@ class BaseAssistant(AssistantInterface, FilesManager):
             "source_questionnaire": self.whole_content(),
             "parsed_questionnaire": False
         })
-        events = self._graph.invoke({"messages": ("user", "Questionnaire uploaded")}, self._config, stream_mode="values")
+        #events = self._graph.invoke({"messages": ("user", "Questionnaire uploaded")}, self._config, stream_mode="values")
         #print(events)
     
     def _route(self, state):
@@ -49,6 +51,11 @@ class BaseAssistant(AssistantInterface, FilesManager):
         else:
             print("Not going to parser")
             return END
+    
+    def _go_to_next(self, state):
+        print("Going to next: ")
+        print(state["next"])
+        return state["next"]
     
     def _get_state(self):
         return self._graph.get_state(self._config)
@@ -63,9 +70,6 @@ class BaseAssistant(AssistantInterface, FilesManager):
         if isinstance(message, list):
             message = message[-1]
         return {"messages": message}
-    
-    _node_orchestrator = functools.partialmethod(_node_agent, agent=Orchestrator(), name="orchestrator")
-    _node_formParser = functools.partialmethod(_node_agent, agent=FormParser(), name="formParser")
     
     #def _create_agents(self):
         #agents = []
@@ -83,14 +87,16 @@ class BaseAssistant(AssistantInterface, FilesManager):
         #agents = self._create_agents()
         #for i in agents:
             #builder.add_node(i.keywords["name"], i)
-        builder.add_node("orchestrator", Orchestrator())
+        builder.add_node("formLoader", FormLoader())
         builder.add_node("formParser", FormParser())
-        #builder.add_node("orchestrator", self._node_orchestrator)
-        #builder.add_node("formParser", self._node_formParser)
+        builder.add_node("orchestrator", Orchestrator())
+        builder.add_node("formExpert", FormExpert())
 
-        builder.set_entry_point("orchestrator")
-        builder.add_conditional_edges("orchestrator", self._route) #,{"formParser": "formParser", "continue": END})
+        builder.set_entry_point("formLoader")
+        builder.add_conditional_edges("formLoader", self._route, {"formParser": "formParser"})
         builder.add_edge("formParser", "orchestrator")
+        builder.add_conditional_edges("orchestrator", self._go_to_next, {"formExpert": "formExpert"})
+        builder.add_edge("formExpert", "orchestrator")
         builder.add_edge("orchestrator", END)
         memory = SqliteSaver.from_conn_string(":memory:")
         return builder.compile(memory)

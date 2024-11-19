@@ -28,6 +28,15 @@ def load_file(uploaded_file, filetype):
         file.write(uploaded_file.getvalue())
     # Then load the file in the assistant
     assistant.load_file(temp_path, filetype)
+    print("Loaded")
+    with st.chat_message("assistant"):
+        print("Entered")
+        response = st.write_stream(assistant.generate_stream_response("Form uploaded", st.session_state))
+        print("Responded")
+        #st.session_state.graph_state = state_aux[0]
+    # Add assistant response to chat history
+    st.session_state.messages.append({"role": "assistant", "content": response})
+    print("Oeeeeooo")
     return assistant.get_json_form()
 
 st.title('Test LLM chat')

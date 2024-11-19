@@ -1,48 +1,61 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import RunnableConfig
+from pydantic import BaseModel
+from typing import Literal
+
 from ..global_conf import GPT_MODEL
 from .base_state import BaseState
 
-old_system_prompt = (
-    "You are a helpful assistant that creates forms in xlsform, given a questionnaire designed by the user. "
-    "The first step for the user is to upload a file with the questionnaire"
-    "Do not create a questionnaire, just use the one uploaded by the user."
-    "You can chat with the user and respond their questions, but if the form has not been uploaded, remind them"
-     " to upload it"
-)
+workers = {
+    "formExpert": "A worker that will respond any question about the form and modify it if necessary, as per the request given by the user",
+    "formBuilder": "A worker that will build the xlsform, only when the form is finished and confirmed by the user"
+}
 
-members = ["formParser"]
+options = ["END"] + list(workers.keys())
+
+class routeResponse(BaseModel):
+    next: Literal[*options]
+
 system_prompt = (
-    "You are a helpful assistant that creates forms in xlsform, given a questionnaire designed by the user. "
-    "To do that, you have one agent that can help you if necessary: {members}. If you need the help of that agent"
-    " respond AGENT: and the name of the agent"
-    "The first step for the user is to upload a file with the questionnaire"
-    "You will not create a questionnaire, you can just use the one uploaded by the user."
-    "You can also chat with the user and respond to their questions, but if the form has not been uploaded,"
-    " remind them to upload it."
-    "Once the questionnaire is uploaded, follow the next steps:"
-    "1. Parse the questionnaire"
-    "2. Show the questionnaire and ask if it's valid"
+    "You are a helpful assistant that creates forms in xlsform, given a questionnaire designed by the user."
+    "To do that, you have several workers that help you with that. These are your workers:"
+    "{workers}."
+    "Each worker will perform a task and respond with their results and status. When finished,"
+    " respond with END."
+    #"Ask the user what do they want to improve in the form or if they want "
 )
 
-class Orchestrator:
+system_instruction = (
+    "Given the conversation above, who should act next?"
+    "Or should we END? Select one of: {options} abd respond with a json where the key is 'next'"
+)
+
+class Orchestrator():
 
     def __init__(self):
         self._prompt = ChatPromptTemplate.from_messages(
             [
                 ("system", system_prompt),
                 MessagesPlaceholder(variable_name="messages"),
+                ("system", system_instruction)
                 #("placeholder", "{messages}")
             ]
-        ).partial(members=", ".join(members))
+        ).partial(
+            workers=str(workers),
+            options=", ".join(options)
+        )
 
+        self._parser = JsonOutputParser(pydantic_object=routeResponse)
         self._llm = ChatOpenAI(model=GPT_MODEL)
-
-        self._runnable = self._prompt | self._llm
+        self._runnable = self._prompt | self._llm | self._parser #.with_structured_output(routeResponse) | self._parser
     
     def __call__(self, state: BaseState, config: RunnableConfig):
         print("CALL Orchestrator")
         result = self._runnable.invoke(state)
-        state["messages"] = state["messages"] + [result]
-        return {"messages": result}
+        print("Orchestrator output:")
+        print(result)
+        return result
+        #state.update(result)
+        #return state

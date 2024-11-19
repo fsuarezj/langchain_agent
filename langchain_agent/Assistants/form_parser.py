@@ -43,7 +43,7 @@ class FormParser:
         ).partial(format_instructions=self._parser.get_format_instructions(),
                   example1_in=self._examples[0][0],
                   example1_out=self._examples[0][1]
-                  )
+        )
         runnable_args = {"source_questionnaire": RunnablePassthrough()}
         self._runnable = (
             runnable_args | self._prompt | self._llm | self._parser
@@ -58,7 +58,8 @@ class FormParser:
                 }
             )}
         parsed_questionnaire = result["messages"]
-        return {"messages": "Form parsed", "source_questionnaire": parsed_questionnaire, "parsed_questionnaire": True}
+        #return {"messages": "Form parsed", "source_questionnaire": parsed_questionnaire, "parsed_questionnaire": True}
+        return {"source_questionnaire": parsed_questionnaire, "parsed_questionnaire": True}
     
     def _load_examples(self):
         # Load examples for one-shot or few-shots

@@ -6,3 +6,4 @@ class BaseState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
     source_questionnaire: str
     parsed_questionnaire: bool
+    next: str
