@@ -5,5 +5,4 @@
 *.cpython
 cache
 tests/tmp
-*/__pycache__/*
-langchain_agent/__pycache__/global_conf.cpython-311.pyc
+langchain_agent/__pycache__/

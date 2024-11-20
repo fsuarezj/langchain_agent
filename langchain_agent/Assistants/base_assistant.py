@@ -50,7 +50,7 @@ class BaseAssistant(AssistantInterface, FilesManager):
             return "formParser"
         else:
             print("Not going to parser")
-            return END
+            return "end"
     
     def _go_to_next(self, state):
         print("Going to next: ")
@@ -93,9 +93,9 @@ class BaseAssistant(AssistantInterface, FilesManager):
         builder.add_node("formExpert", FormExpert())
 
         builder.set_entry_point("formLoader")
-        builder.add_conditional_edges("formLoader", self._route, {"formParser": "formParser"})
+        builder.add_conditional_edges("formLoader", self._route, {"formParser": "formParser", "end": END})
         builder.add_edge("formParser", "orchestrator")
-        builder.add_conditional_edges("orchestrator", self._go_to_next, {"formExpert": "formExpert"})
+        builder.add_conditional_edges("orchestrator", self._go_to_next, {"formExpert": "formExpert", "end": END})
         builder.add_edge("formExpert", "orchestrator")
         builder.add_edge("orchestrator", END)
         memory = SqliteSaver.from_conn_string(":memory:")
@@ -125,8 +125,8 @@ class BaseAssistant(AssistantInterface, FilesManager):
         #print(events)
         for event in events:
             state.graph_state = self._graph.get_state(self._config).next[0]
-            print("STATE AFTER EVENT IS")
-            print(self._graph.get_state(self._config))
+            #print("STATE AFTER EVENT IS")
+            #print(self._graph.get_state(self._config))
             message = event.get("messages")
             if isinstance(message, list):
                 message = message[-1]

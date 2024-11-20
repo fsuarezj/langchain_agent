@@ -40,7 +40,8 @@ X Fix connection with form_parser
 X Review flow of graph, it always executes Orchestrator chat and later makes the decision where to go next. Now going directly to formParser, but probably need to be managed from Orchestrator as tools
 X When going out of formParser doesn't overwrite the state with the parsed questionnaire
 X Fix uploading after chatting
-- Create agent to dialog with form
+- Create initial agent to dialog with form
+- Call form_expert as a function
 - Create variable_creator
 - Create Data Agent to create xlsform
 
