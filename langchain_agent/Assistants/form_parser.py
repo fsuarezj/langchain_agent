@@ -51,6 +51,7 @@ class FormParser:
 
     def __call__(self, state: BaseState, config: RunnableConfig):
         print("CALL FormParser")
+        print(state)
         # Calling the LLM
         result = {"messages": self._runnable.invoke(
             {
@@ -58,7 +59,6 @@ class FormParser:
                 }
             )}
         parsed_questionnaire = result["messages"]
-        #return {"messages": "Form parsed", "source_questionnaire": parsed_questionnaire, "parsed_questionnaire": True}
         return {"source_questionnaire": parsed_questionnaire, "parsed_questionnaire": True}
     
     def _load_examples(self):
@@ -68,15 +68,3 @@ class FormParser:
         with open("langchain_agent/assistants/examples/form_parser1.out", 'r') as file:
             form_parser1_out = ""#json.load(file)
         self._examples.append((form_parser1_in, form_parser1_out))
-
-#    def run(self, input, state):
-#        result = {"messages": self._runnable.invoke(
-#            {
-#                "source_questionnaire": state.values["source_questionnaire"],
-#                "format_instructions": self._parser.get_format_instructions(),
-#                "form_parser1_in": form_parser1_in,
-#                "form_parser1_out": form_parser1_out
-#                }
-#            )}
-#        state.values["parsed_questionnaire"] = True
-#        return result

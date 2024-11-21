@@ -39,8 +39,11 @@ class BaseAssistant(AssistantInterface, FilesManager):
             "source_questionnaire": self.whole_content(),
             "parsed_questionnaire": False
         })
-        #events = self._graph.invoke({"messages": ("user", "Questionnaire uploaded")}, self._config, stream_mode="values")
-        #print(events)
+        parser = FormParser()
+        new_state = parser(self._graph.get_state(self._config).values, self._config)
+        print("PARSED IS")
+        print(new_state)
+        self._graph.update_state(self._config, new_state)
     
     def _route(self, state):
         print("DECIDING:")
