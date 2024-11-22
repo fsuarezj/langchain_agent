@@ -41,8 +41,9 @@ X Review flow of graph, it always executes Orchestrator chat and later makes the
 X When going out of formParser doesn't overwrite the state with the parsed questionnaire
 X Fix uploading after chatting
 X Create initial agent to dialog with form
+- Create method in Questionnaire model to create xlsform
 - Check why FormBuilder always send a questionnaire only with one question
-- Create Data Agent to create xlsform
+- Catch errors in agents output
 
 
 - If I want to make orchestrator a real distributor, check in https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/multi_agent/agent_supervisor.ipynb
