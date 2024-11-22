@@ -18,6 +18,12 @@ def mermaid_graph(state: str):
     else:
         return assistant.get_diagram("sensitive_tools")
 
+@st.cache_data
+def update_json(json):
+    if json:
+        with st.expander("JSON Form"):
+            st.write(json)
+
 # Saves tm
 @st.cache_data
 def load_file(uploaded_file, filetype):
@@ -50,9 +56,7 @@ if uploaded_file:
     filetype = uploaded_file.type.split("/")[1]
     json_form = load_file(uploaded_file, filetype)
     #st.write(assistant.whole_content())
-    if json_form:
-        with st.expander("JSON Form"):
-            st.write(json_form)
+    update_json(json_form)
 
 
 # Display chat messages on app rerun
@@ -75,6 +79,7 @@ if prompt:
         #st.session_state.graph_state = state_aux[0]
     # Add assistant response to chat history
     st.session_state.messages.append({"role": "assistant", "content": response})
+    update_json(assistant.get_json_form())
 
 # Display log on app rerun
 with st.sidebar:

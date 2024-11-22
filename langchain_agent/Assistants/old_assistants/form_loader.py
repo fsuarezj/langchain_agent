@@ -1,8 +1,8 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import RunnableConfig
-from ..global_conf import GPT_MODEL
-from .base_state import BaseState
+from ...global_conf import GPT_MODEL
+from ..base_state import BaseState
 
 system_prompt = (
     "You are the first step of a helpful assistant that creates forms in xlsform, given a questionnaire designed by the user. "

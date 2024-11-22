@@ -2,10 +2,10 @@ from .assistance_interface import AssistantInterface
 from .helping_features.files_manager import FilesManager
 
 from .base_state import BaseState
-from .form_loader import FormLoader
 from .form_parser import FormParser
 from .orchestrator import Orchestrator
 from .form_expert import FormExpert
+from .form_builder import FormBuilder
 
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import StateGraph, END
@@ -13,7 +13,6 @@ from langchain_core.messages import HumanMessage
 
 from dotenv import load_dotenv
 import uuid
-import functools
 import types
 
 class BaseAssistant(AssistantInterface, FilesManager):
@@ -28,7 +27,8 @@ class BaseAssistant(AssistantInterface, FilesManager):
             }
         }
         self._graph.update_state(self._config, {
-            "parsed_questionnaire": False
+            "parsed_questionnaire": False,
+            "source_questionnaire": "Questionnaire has not yet been uploaded by the user"
         })
     
     def load_file(self, file, filetype) -> None:
@@ -37,7 +37,6 @@ class BaseAssistant(AssistantInterface, FilesManager):
         self._graph.update_state(self._config, {
             "messages": self._graph.get_state(self._config).values["messages"],
             "source_questionnaire": self.whole_content(),
-            "parsed_questionnaire": False
         })
         parser = FormParser()
         new_state = parser(self._graph.get_state(self._config).values, self._config)
@@ -45,15 +44,15 @@ class BaseAssistant(AssistantInterface, FilesManager):
         print(new_state)
         self._graph.update_state(self._config, new_state)
     
-    def _route(self, state):
-        print("DECIDING:")
-        #print(self._get_state())
-        if self._document_loaded and not self._get_state().values["parsed_questionnaire"]:
-            print("Going to parser")
-            return "formParser"
-        else:
-            print("Not going to parser")
-            return "end"
+#    def _route(self, state):
+#        print("DECIDING:")
+#        #print(self._get_state())
+#        if self._document_loaded and not self._get_state().values["parsed_questionnaire"]:
+#            print("Going to parser")
+#            return "formParser"
+#        else:
+#            print("Not going to parser")
+#            return "end"
     
     def _go_to_next(self, state):
         print("Going to next: ")
@@ -90,17 +89,17 @@ class BaseAssistant(AssistantInterface, FilesManager):
         #agents = self._create_agents()
         #for i in agents:
             #builder.add_node(i.keywords["name"], i)
-        builder.add_node("formLoader", FormLoader())
-        builder.add_node("formParser", FormParser())
         builder.add_node("orchestrator", Orchestrator())
         builder.add_node("formExpert", FormExpert())
+        builder.add_node("formBuilder", FormBuilder())
 
-        builder.set_entry_point("formLoader")
-        builder.add_conditional_edges("formLoader", self._route, {"formParser": "formParser", "end": END})
-        builder.add_edge("formParser", "orchestrator")
-        builder.add_conditional_edges("orchestrator", self._go_to_next, {"formExpert": "formExpert", "end": END})
-        builder.add_edge("formExpert", "orchestrator")
-        builder.add_edge("orchestrator", END)
+        builder.set_entry_point("orchestrator")
+        builder.add_conditional_edges("orchestrator", self._go_to_next, {"formExpert": "formExpert", "formBuilder": "formBuilder"})#, "end": END})
+        #builder.add_edge("formExpert", "orchestrator")
+        #builder.add_edge("formBuilder", "orchestrator")
+        #builder.add_edge("orchestrator", END)
+        builder.add_edge("formExpert", END)
+        builder.add_edge("formBuilder", END)
         memory = SqliteSaver.from_conn_string(":memory:")
         return builder.compile(memory)
 
