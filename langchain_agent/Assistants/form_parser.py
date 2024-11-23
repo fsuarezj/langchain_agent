@@ -4,6 +4,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import RunnableConfig
 from pydantic_core import from_json
+import json
 
 from ..global_conf import GPT_MODEL
 from .json_form import Questionnaire
@@ -60,10 +61,7 @@ class FormParser:
                 }
             )}
         parsed_questionnaire = result["messages"]
-        form_str = str(parsed_questionnaire)
-        print(form_str)
-        form_str = from_json(form_str)
-        print(form_str)
+        form_str = json.dumps(parsed_questionnaire)
         form = Questionnaire.model_validate(from_json(form_str, allow_partial=True))
         form.to_xlsform('formulario.xlsx')
         return {"source_questionnaire": parsed_questionnaire, "parsed_questionnaire": True}

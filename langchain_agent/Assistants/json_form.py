@@ -18,7 +18,7 @@ class Nameable:
     def get_name(self):
         result = sub(r"(_|-)+", " ", self.label).title().replace(" ", "")
         max = min(len(result), 10)
-        return ''.join([result[0].lower(), result[1:max-1]])
+        return ''.join([result[0].lower(), result[1:max]])
 
 
 class Option(BaseModel, Nameable):
@@ -31,7 +31,7 @@ class Option(BaseModel, Nameable):
             'name': self.get_name(),
             'label': self.label
         }
-        choices = choices.append(row, ignore_index=True)
+        choices = pd.concat([choices, pd.Series(row).to_frame().T], ignore_index=True)
         return choices
 
 class Item(BaseModel, Nameable):
@@ -42,44 +42,44 @@ class Item(BaseModel, Nameable):
     content: Optional[List['Item']] = Field(default = None, description="Mandatory and only existing if type is a section, nested content of the section")
     options: Optional[List[Option]] = Field(default = None, desctiption="Mandatory and only existing if it's a select_one or select_multiple question, it is list of options")
 
-    def _create_row():
+    def _create_row(self):
         if self.type == 'note':
             survey_row = {
-                'type': self.type,
+                'type': self.type.split(".", 1)[0],
                 'name': self.get_name(),
                 'label': self.label,
                 'hint': self.hint
             }
         elif self.type in ['text', 'integer', 'decimal']:
             survey_row = {
-                'type': self.type,
+                'type': self.type.split(".", 1)[0],
                 'name': self.get_name(),
-                'label': self.question_num + '. ' + self.label,
+                'label': str(self.question_num) + '. ' + self.label,
                 'hint': self.hint
             }
         elif self.type in ['select_one', 'select_multiple']:
             survey_row = {
                 'type': self.type + " " + self.get_name(),
                 'name': self.get_name(),
-                'label': self.question_num + '. ' + self.label,
+                'label': str(self.question_num) + '. ' + self.label,
                 'hint': self.hint
             }
         elif self.type == 'section':
             survey_row = {
                 'type': 'begin_group',
                 'name': self.get_name(),
-                'label': self.question_num + '. ' + self.label,
+                'label': self.label,
                 'hint': self.hint
             }
         return survey_row
 
     def to_xlsform(self, survey: pd.DataFrame, choices: pd.DataFrame):
         row = self._create_row()
-        survey = survey.append(row, ignore_index=True)
+        survey = pd.concat([survey, pd.Series(row).to_frame().T], ignore_index=True)
         if self.type == 'section':
             for i in self.content:
-                i.to_xlsform(survey, choices)
-            survey = survey.append({'type': 'end_group'}, ignore_index=True)
+                (survey, choices) = i.to_xlsform(survey, choices)
+            survey = pd.concat([survey, pd.Series({'type': 'end_group'}).to_frame().T], ignore_index=True)
         elif self.type in ['select_one', 'select_multiple']:
             for opt in self.options:
                 choices = opt.to_xlsform(self.get_name(), choices)
@@ -97,5 +97,5 @@ class Questionnaire(BaseModel):
         for i in self.content:
             (survey, choices) = i.to_xlsform(survey, choices)
         with pd.ExcelWriter(filename) as writer:
-            survey.to_excel(writer, sheet_name='survey')
-            choices.to_excel(writer, sheet_name='choices')
+            survey.to_excel(writer, sheet_name='survey', index=False)
+            choices.to_excel(writer, sheet_name='choices', index=False)
