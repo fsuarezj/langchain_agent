@@ -20,7 +20,6 @@ class Nameable:
         max = min(len(result), 10)
         return ''.join([result[0].lower(), result[1:max]])
 
-
 class Option(BaseModel, Nameable):
     label: str = Field(description="option name")
     #name: str = Field(description="internal name of the option, in camelCase, one or two words not starting with numbers, meaningful and without special characters")
@@ -73,16 +72,29 @@ class Item(BaseModel, Nameable):
             }
         return survey_row
 
-    def to_xlsform(self, survey: pd.DataFrame, choices: pd.DataFrame):
+    def to_xlsform(self, survey: pd.DataFrame, choices: pd.DataFrame, choices_dict: dict):
         row = self._create_row()
         survey = pd.concat([survey, pd.Series(row).to_frame().T], ignore_index=True)
         if self.type == 'section':
             for i in self.content:
-                (survey, choices) = i.to_xlsform(survey, choices)
+                (survey, choices) = i.to_xlsform(survey, choices, choices_dict)
             survey = pd.concat([survey, pd.Series({'type': 'end_group'}).to_frame().T], ignore_index=True)
         elif self.type in ['select_one', 'select_multiple']:
+            #options = [opt.label for opt in self.options].sort()
+            options = []
             for opt in self.options:
-                choices = opt.to_xlsform(self.get_name(), choices)
+                options.append(opt.label.lower())
+            options.sort()
+            if options not in choices_dict.values():
+                print("NEW")
+                choices_dict[self.get_name()] = options
+                for opt in self.options:
+                    choices = opt.to_xlsform(self.get_name(), choices)
+            else:
+                print("EXISTING")
+                key = list(filter(lambda x: choices_dict[x] == options, choices_dict))[0]
+                print(key)
+                survey.iloc[-1, survey.columns.get_loc('type')] = self.type + " " + key
         return (survey, choices)
 
 class Questionnaire(BaseModel):
@@ -94,8 +106,9 @@ class Questionnaire(BaseModel):
     def to_xlsform(self, filename):
         survey = pd.DataFrame()
         choices = pd.DataFrame()
+        choices_dict = {}
         for i in self.content:
-            (survey, choices) = i.to_xlsform(survey, choices)
+            (survey, choices) = i.to_xlsform(survey, choices, choices_dict)
         with pd.ExcelWriter(filename) as writer:
             survey.to_excel(writer, sheet_name='survey', index=False)
             choices.to_excel(writer, sheet_name='choices', index=False)
