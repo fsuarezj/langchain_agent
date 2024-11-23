@@ -85,6 +85,9 @@ if prompt:
 with st.sidebar:
     st.header("State")
     st_mermaid(mermaid_graph(st.session_state.graph_state))
+    if uploaded_file:
+        with open("new_form.xlsx", "rb") as f:
+            st.download_button("Download XLSForm", f, file_name="new_form.xlsx")
 
 #for log_message in st.session_state.log:
     #st.sidebar.caption(log_message)

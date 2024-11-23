@@ -42,11 +42,12 @@ X When going out of formParser doesn't overwrite the state with the parsed quest
 X Fix uploading after chatting
 X Create initial agent to dialog with forX
 X Create method in Questionnaire model to create xlsform
-- Make the file downloadable from streamlit
+X Make the file downloadable from streamlit
 - Do not duplicate "Options" when creating choices
+- Monitor costs
 - Review pydantic data model to see if it can be improved (conditionality of fields)
 - Check why FormBuilder always send a questionnaire only with one question
-- Review how to manage questions individually (new agent?)
+- Review how to manage questions individually (one agent for form and one agent to manage individual quiestons?)
 - Create conditionality agent?
 - Catch errors in agents output
 
