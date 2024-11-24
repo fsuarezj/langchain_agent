@@ -7,6 +7,7 @@ from typing import Literal
 
 from ..global_conf import GPT_MODEL
 from .base_state import BaseState
+from .agents_features.cost_calculator import CostCalculator
 
 workers = {
     "formBuilder": "A worker that will modify the form as requested by the user",
@@ -41,7 +42,7 @@ system_instruction = (
     #Respond with a json with the key "next" with the name of the worker that should respond or "end" if you have finished
 )
 
-class Orchestrator():
+class Orchestrator(CostCalculator):
 
     def __init__(self):
         self._prompt = ChatPromptTemplate.from_messages(
@@ -63,7 +64,7 @@ class Orchestrator():
     def __call__(self, state: BaseState, config: RunnableConfig):
         print("CALL Orchestrator")
         print(state)
-        result = self._runnable.invoke(state)
+        result = self._costs_invoke_OpenAI(state['costs'], state)
         print("Orchestrator output:")
         print(result)
         return result

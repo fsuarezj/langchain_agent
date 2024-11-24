@@ -6,6 +6,7 @@ from langchain_core.runnables import RunnableConfig, RunnablePassthrough
 from ..global_conf import GPT_MODEL
 from .base_state import BaseState
 from .json_form import Questionnaire
+from .agents_features.cost_calculator import CostCalculator
 
 system_prompt = (
     """
@@ -31,7 +32,7 @@ system_prompt = (
     """
 )
 
-class FormExpert:
+class FormExpert(CostCalculator):
 
     def __init__(self):
         self._parser = JsonOutputParser(pydantic_object=Questionnaire)
@@ -54,6 +55,6 @@ class FormExpert:
                 #state["messages"],
                 #state["source_questionnaire"],
         #)}
-        result = self._runnable.invoke(state) #["source_questionnaire"], state["messages"])
+        result = self._costs_invoke_OpenAI(state['costs'], state) #["source_questionnaire"], state["messages"])
         state["messages"] = state["messages"] + [result]
         return {"messages": result}

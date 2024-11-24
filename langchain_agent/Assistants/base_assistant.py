@@ -11,6 +11,7 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage
 
+from pandas import Series
 from dotenv import load_dotenv
 import uuid
 import types
@@ -43,6 +44,8 @@ class BaseAssistant(AssistantInterface, FilesManager):
         print("PARSED IS")
         print(new_state)
         self._graph.update_state(self._config, new_state)
+        print('NEW STATEEEEEE')
+        print(self._graph.get_state(self._config))
     
 #    def _route(self, state):
 #        print("DECIDING:")
@@ -120,6 +123,11 @@ class BaseAssistant(AssistantInterface, FilesManager):
         print("GRAPH: ")
         print(diagram)
         return diagram
+    
+    def get_costs(self) -> Series:
+        costs = Series(self._graph.get_state(self._config).values['costs'])
+        print(costs)
+        return costs
 
     def generate_stream_response(self, input, state = types.SimpleNamespace()):
         events = self._graph.stream({"messages": ("user", input)}, self._config, stream_mode="values")

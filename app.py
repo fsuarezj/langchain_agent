@@ -88,6 +88,10 @@ with st.sidebar:
     if uploaded_file:
         with open("new_form.xlsx", "rb") as f:
             st.download_button("Download XLSForm", f, file_name="new_form.xlsx")
+    costs = assistant.get_costs()
+    if not costs.empty:
+        st.bar_chart(costs, horizontal=True, x_label="Cost (USD)", y_label="Agents")
+    st.subheader("Total cost: $" + str(round(sum(costs.to_list()),6)))# + " USD")
 
 #for log_message in st.session_state.log:
     #st.sidebar.caption(log_message)

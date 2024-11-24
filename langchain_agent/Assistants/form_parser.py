@@ -9,8 +9,9 @@ import json
 from ..global_conf import GPT_MODEL
 from .json_form import Questionnaire
 from .base_state import BaseState
+from.agents_features.cost_calculator import CostCalculator
 
-class FormParser:
+class FormParser(CostCalculator):
     def __init__(self):
         self._llm = ChatOpenAI(model=GPT_MODEL)
         self._parser = JsonOutputParser(pydantic_object=Questionnaire)
@@ -53,18 +54,17 @@ class FormParser:
 
     def __call__(self, state: BaseState, config: RunnableConfig):
         print("CALL FormParser")
-        print(state)
         # Calling the LLM
-        result = {"messages": self._runnable.invoke(
+        result = self._costs_invoke_OpenAI(state['costs'], 
             {
                 "source_questionnaire": state["source_questionnaire"]
                 }
-            )}
-        parsed_questionnaire = result["messages"]
+        )
+        parsed_questionnaire = result
         form_str = json.dumps(parsed_questionnaire)
         form = Questionnaire.model_validate(from_json(form_str, allow_partial=True))
         form.to_xlsform('new_form.xlsx')
-        return {"source_questionnaire": parsed_questionnaire, "parsed_questionnaire": True}
+        return {"source_questionnaire": parsed_questionnaire, "parsed_questionnaire": True, "costs": state['costs']}
     
     def _load_examples(self):
         # Load examples for one-shot or few-shots

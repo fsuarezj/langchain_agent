@@ -86,14 +86,11 @@ class Item(BaseModel, Nameable):
                 options.append(opt.label.lower())
             options.sort()
             if options not in choices_dict.values():
-                print("NEW")
                 choices_dict[self.get_name()] = options
                 for opt in self.options:
                     choices = opt.to_xlsform(self.get_name(), choices)
             else:
-                print("EXISTING")
                 key = list(filter(lambda x: choices_dict[x] == options, choices_dict))[0]
-                print(key)
                 survey.iloc[-1, survey.columns.get_loc('type')] = self.type + " " + key
         return (survey, choices)
 
