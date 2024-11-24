@@ -107,5 +107,6 @@ class Questionnaire(BaseModel):
         for i in self.content:
             (survey, choices) = i.to_xlsform(survey, choices, choices_dict)
         with pd.ExcelWriter(filename) as writer:
+            print("Writing file")
             survey.to_excel(writer, sheet_name='survey', index=False)
             choices.to_excel(writer, sheet_name='choices', index=False)

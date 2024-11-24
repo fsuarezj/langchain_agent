@@ -156,3 +156,10 @@ class BaseAssistant(AssistantInterface, FilesManager):
             return state.values["source_questionnaire"]
         else:
             return ""
+    
+    def get_downloadable_file(self):
+        state = self._get_state()
+        if state.values["parsed_questionnaire"]:
+            return state.values["source_questionnaire"]
+        else:
+            return ""

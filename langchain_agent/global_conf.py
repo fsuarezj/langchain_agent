@@ -21,6 +21,7 @@ CPP_MODEL = "mistralai/Mistral-7B-Instruct-v0.2"
 #EMBED_MODEL = "text-embedding-3-large"
 EMBED_MODEL = "local:BAAI/bge-small-en-v1.5"
 MODE = "query"
+LIMIT_TRIES = 3
 #kMODE = "chat"
 #MODE = "agent"
 

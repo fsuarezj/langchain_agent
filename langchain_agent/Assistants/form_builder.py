@@ -1,13 +1,15 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
-from langgraph.graph.message import AnyMessage, add_messages
 from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.exceptions import OutputParserException
 from langchain_core.runnables import RunnableConfig, RunnablePassthrough
 from langchain_core.messages.ai import AIMessage
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
+from pydantic_core import from_json
 from typing import Optional
+import json
 
-from ..global_conf import GPT_MODEL
+from ..global_conf import GPT_MODEL, LIMIT_TRIES
 from .base_state import BaseState
 from .json_form import Questionnaire
 from.agents_features.cost_calculator import CostCalculator
@@ -71,17 +73,31 @@ class FormBuilder(CostCalculator):
     def __call__(self, state: BaseState, config: RunnableConfig):
         print("CALL FormBuilder")
         print(state)
-        #result = {"messages": self._runnable.invoke(
-                #state["messages"],
-                #state["source_questionnaire"],
-        #)}
-        result = self._costs_invoke_OpenAI(state["costs"], state) #state["messages"], state["source_questionnaire"])
-        state["messages"] = state["messages"] + [AIMessage(result["messages"])]
-        if "source_questionnaire" in result and result["source_questionnaire"]: # In case the LLM gives a None questionnaire
-            state["source_questionnaire"] = result["source_questionnaire"]
-        result["messages"] = AIMessage(result["messages"])
+        re_invoke_llm = LIMIT_TRIES
+        while re_invoke_llm:
+            try:
+                result = self._costs_invoke_OpenAI(state["costs"], state) #state["messages"], state["source_questionnaire"])
+                state["messages"] = state["messages"] + [AIMessage(result["messages"])]
+                if "source_questionnaire" in result and result["source_questionnaire"]: # In case the LLM gives a None questionnaire
+                    form_str = json.dumps(result["source_questionnaire"])
+                    form = Questionnaire.model_validate(from_json(form_str, allow_partial=True))
+                    form.to_xlsform("new_form.xlsx")
+                    state["source_questionnaire"] = result["source_questionnaire"]
+                result["messages"] = AIMessage(result["messages"])
+                re_invoke_llm = 0
+            except ValidationError:
+                re_invoke_llm -= 1
+                print(result)
+                print("Validation Error when validating model!!!")
+                if not re_invoke_llm:
+                    state["messages"][0] = AIMessage("Apologies, I had some problems to do that. Try again")
+                    return state
+            except OutputParserException:
+                re_invoke_llm -= 1
+                print("Validation Error in parser!!!")
+                if not re_invoke_llm:
+                    state["messages"] = state["messages"] + [AIMessage("Apologies, I had some problems to do that. Try again")]
+                    return state
         print("FormBuilder output:")
         print(result)
-        print("State")
-        print(state)
         return state

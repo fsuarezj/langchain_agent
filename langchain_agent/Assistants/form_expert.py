@@ -22,8 +22,8 @@ system_prompt = (
     You can chat with the user but don't respond to questions not related to the questionnaire, if the 
     form has not been uploaded, remind them to upload it.
 
-    If you respond with a question, format it as follows:
-    - Use the numeration of the question defined in the variable "question_num"
+    If in your response, you include any of the questions of the form, format it as follows:
+    - Always use the numeration of the question defined in the variable "question_num"
     - Write the question label in bold
     - Write the question type in italic
     - If existing, write the options as bullet points

@@ -1,12 +1,15 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.exceptions import OutputParserException
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import RunnableConfig
+from langchain_core.messages.ai import AIMessage
 from pydantic_core import from_json
+from pydantic import ValidationError
 import json
 
-from ..global_conf import GPT_MODEL
+from ..global_conf import GPT_MODEL, LIMIT_TRIES
 from .json_form import Questionnaire
 from .base_state import BaseState
 from.agents_features.cost_calculator import CostCalculator
@@ -55,15 +58,31 @@ class FormParser(CostCalculator):
     def __call__(self, state: BaseState, config: RunnableConfig):
         print("CALL FormParser")
         # Calling the LLM
-        result = self._costs_invoke_OpenAI(state['costs'], 
-            {
-                "source_questionnaire": state["source_questionnaire"]
-                }
-        )
-        parsed_questionnaire = result
-        form_str = json.dumps(parsed_questionnaire)
-        form = Questionnaire.model_validate(from_json(form_str, allow_partial=True))
-        form.to_xlsform('new_form.xlsx')
+        re_invoke_llm = LIMIT_TRIES
+        while re_invoke_llm:
+            try:
+                result = self._costs_invoke_OpenAI(state['costs'], 
+                    {
+                        "source_questionnaire": state["source_questionnaire"]
+                        }
+                )
+                parsed_questionnaire = result
+                form_str = json.dumps(parsed_questionnaire)
+                form = Questionnaire.model_validate(from_json(form_str, allow_partial=True))
+                re_invoke_llm = 0
+                form.to_xlsform('new_form.xlsx')
+            except ValidationError:
+                re_invoke_llm -= 1
+                print("Validation Error when validating model!!!")
+                if not re_invoke_llm:
+                    state["messages"] = state["messages"] + [AIMessage("Apologies, I had some problems to do that. Try again")]
+                    return state
+            except OutputParserException:
+                re_invoke_llm -= 1
+                print("Validation Error in parser!!!")
+                if not re_invoke_llm:
+                    state["messages"] = state["messages"] + [AIMessage("Apologies, I had some problems to do that. Try again")]
+                    return state
         return {"source_questionnaire": parsed_questionnaire, "parsed_questionnaire": True, "costs": state['costs']}
     
     def _load_examples(self):
