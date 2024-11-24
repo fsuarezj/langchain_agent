@@ -10,6 +10,7 @@ from typing import Optional
 from ..global_conf import GPT_MODEL
 from .base_state import BaseState
 from .json_form import Questionnaire
+from.agents_features.cost_calculator import CostCalculator
 
 class builderResponse(BaseModel):
     messages: str
@@ -48,12 +49,12 @@ system_instruction = (
 )
 
 
-class FormBuilder:
+class FormBuilder(CostCalculator):
 
     def __init__(self):
         formParser = JsonOutputParser(pydantic_object=Questionnaire)
         self._parser = JsonOutputParser(pydantic_object=builderResponse)
-        runnable_args = {"source_questionnaire": RunnablePassthrough(), "messages": RunnablePassthrough()}
+        #runnable_args = {"source_questionnaire": RunnablePassthrough(), "messages": RunnablePassthrough()}
         self._prompt = ChatPromptTemplate.from_messages(
             [
                 ("system", system_prompt),
@@ -63,7 +64,8 @@ class FormBuilder:
         ).partial(format_questionnaire=formParser.get_format_instructions())
         self._llm = ChatOpenAI(model=GPT_MODEL)
         self._runnable = (
-            runnable_args | self._prompt | self._llm | self._parser
+            #runnable_args | self._prompt | self._llm | self._parser
+            self._prompt | self._llm | self._parser
         )
     
     def __call__(self, state: BaseState, config: RunnableConfig):
@@ -73,11 +75,13 @@ class FormBuilder:
                 #state["messages"],
                 #state["source_questionnaire"],
         #)}
-        result = self._runnable.invoke(state["messages"], state["source_questionnaire"])
+        result = self._costs_invoke_OpenAI(state["costs"], state) #state["messages"], state["source_questionnaire"])
         state["messages"] = state["messages"] + [AIMessage(result["messages"])]
+        if "source_questionnaire" in result and result["source_questionnaire"]: # In case the LLM gives a None questionnaire
+            state["source_questionnaire"] = result["source_questionnaire"]
         result["messages"] = AIMessage(result["messages"])
         print("FormBuilder output:")
         print(result)
         print("State")
         print(state)
-        return result
+        return state

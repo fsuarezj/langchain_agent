@@ -126,7 +126,7 @@ class BaseAssistant(AssistantInterface, FilesManager):
     
     def get_costs(self) -> Series:
         costs = Series(self._graph.get_state(self._config).values['costs'])
-        print(costs)
+        
         return costs
 
     def generate_stream_response(self, input, state = types.SimpleNamespace()):

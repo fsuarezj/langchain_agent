@@ -12,16 +12,7 @@ def add_cost(state: dict, costs: dict) -> object:
         print(new_costs)
     else:
         new_costs = costs
-    #if 'messages' in state: new_state['messages'] = state['messages']
-    #if 'source_questionnaire' in state: new_state['source_questionnaire'] = state['source_questionnaire']
-    #if 'parsed_questionnaire' in state: new_state['parsed_questionnaire'] = state['parsed_questionnaire']
-    #if 'next' in state: new_state['next'] = state['next'] 
     return BaseState(new_costs)
-    #    messages=messages,
-    #    costs=new_costs,
-    #    source_questionnaire=source_questionnaire,
-    #    parsed_questionnaire=parsed_questionnaire,
-    #    next=next
 
 class BaseState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
