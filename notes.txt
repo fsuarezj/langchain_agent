@@ -45,10 +45,13 @@ X Create method in Questionnaire model to create xlsform
 X Make the file downloadable from streamlit
 X Do not duplicate "Options" when creating choices
 X Include monitor costs support for FormBuilder
+- Parser works worse with the name and list_names fields included in Pydantic, debug
+- Create agent to improve variable naming (don't call it if there is already a good variable name)?
+- Correct issue with 3 errors in parser
 - It seems there is a bug with the numeration of the questions: not doing it (number=None in the excel) or pydantic validation error
 - First question after uploading, it thinks it's not uploaded
 - Review pydantic data model to see if it can be improved (conditionality of fields)
-- Check why FormBuilder always send a questionnaire only with one question
+! Check why FormBuilder always send a questionnaire only with one question
 - Review how to manage questions individually (one agent for form and one agent to manage individual quiestons?)
 - Create conditionality agent?
 - Catch errors in agents output

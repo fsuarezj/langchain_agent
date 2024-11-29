@@ -67,19 +67,22 @@ class FormParser(CostCalculator):
                         }
                 )
                 parsed_questionnaire = result
+                print(parsed_questionnaire)
                 form_str = json.dumps(parsed_questionnaire)
                 form = Questionnaire.model_validate(from_json(form_str, allow_partial=True))
                 re_invoke_llm = 0
                 form.to_xlsform('new_form.xlsx')
-            except ValidationError:
+            except ValidationError as e:
                 re_invoke_llm -= 1
                 print("Validation Error when validating model!!!")
+                print(e)
                 if not re_invoke_llm:
                     state["messages"] = state["messages"] + [AIMessage("Apologies, I had some problems to do that. Try again")]
                     return state
-            except OutputParserException:
+            except OutputParserException as e:
                 re_invoke_llm -= 1
                 print("Validation Error in parser!!!")
+                print(e)
                 if not re_invoke_llm:
                     state["messages"] = state["messages"] + [AIMessage("Apologies, I had some problems to do that. Try again")]
                     return state
